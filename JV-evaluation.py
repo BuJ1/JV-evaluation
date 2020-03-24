@@ -7,6 +7,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtRemoveInputHook
 from pdb import set_trace
+from LabledSlider import LabledSlider
 
 import h5py
 
@@ -137,29 +138,7 @@ class main_window(QtWidgets.QMainWindow):
         self.mplToolbar = NavigationToolbar(self.fig, self)
         self.mplToolbar.addAction(self.plotLogarithmicAction)
 
-        # right_spacer = QtWidgets.QWidget()
-        # right_spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        # self.mplToolbar.addWidget(right_spacer)
         self.addToolBar(self.mplToolbar)
-        # self.fig.setFocusPolicy(QtCore.Qt.ClickFocus)
-        # self.fig.setFocus()
-        # files = self.selectFilePath()
-        # filepath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Open File"))
-
-        # Define color map
-        # Colors for Bent-Azaarenes (The labels of the dictionary must be the same as the file names)
-        # self.color_map = {"PTB5": "#04A3FFFF", "TP": "#de8300ff", "TPD": "#ffa520ff", "Thia": "#629c29ff", "ThiaD":"#91d04fff", "TP-PTB7": "#de8300ff", "TPD-PTB7": "#ffa520ff", "Thia-PTB7": "#629c29ff", "ThiaD-PTB7":"#91d04fff"}
-
-        # Color map for increasing temperature
-        # self.color_map = {"ref": "#000000ff", "250C": "#fffa00ff", "300C": "#ffc800ff", "350C": "#ff9600ff", "400C": "#ff6400ff"}
-
-        # linest = {"PTB7": "-", "TP": "-", "TPD": "-", "Thia": "-", "ThiaD": "-", "TP-PTB7": "--", "TPD-PTB7": "--", "Thia-PTB7": "--", "ThiaD-PTB7":"--"}
-
-
-        # Define if one wants to normalize the data
-        # True: Normalize data where lowest point is zero and highest is 1 in xlim selected in (else of if do_fit)
-        # False: Plot raw data
-        # self.plot(files, (0, 0), ["wavelength", "absorption"], ["Wavelength (nm)", "EQE (%)"], 100, ["wavelength", "absorption"])
 
         ## LOCAL VARIABLES FOR ACTIONS
 
@@ -305,7 +284,6 @@ class main_window(QtWidgets.QMainWindow):
                 skipr = 0
                 for k in range(np.size(x_data)):
                     try:
-                        val = float(x_data[k])
                         break
                     except:
                         skipr = k + 1
@@ -314,7 +292,6 @@ class main_window(QtWidgets.QMainWindow):
                 skipf = 0
                 for k in reversed(range(np.size(x_data))):
                     try:
-                        val = float(x_data[k])
                         break
                     except:
                         skipf = np.size(x_data) - k
@@ -331,8 +308,6 @@ class main_window(QtWidgets.QMainWindow):
             return
 
         # Declare arrays
-        dataLength = np.size(x_data) - skipr - skipf
-        # dataStorage = np.empty((2 * np.size(files), dataLength), dtype = float)
         dataStorage = []
         graphLabels = np.empty(np.size(files), dtype = object)
 
@@ -351,20 +326,12 @@ class main_window(QtWidgets.QMainWindow):
 
                 for nbPltVars in range(np.size(plotVars_)):
                     dataStorage.append(file_data_list[plotVars_[nbPltVars]])
-                    # x_data = np.array(file_data_list[plotVars_[0]])
-                    # y_data = np.array(file_data_list[plotVars_[1]])
 
                 if np.size(dataStorage[-1]) == 0 or np.size(dataStorage[-2]) == 0:
                     warnings.warn("Couldn't load file " + str(filename) + 
                             " please check that data format matches the required format.",
                             category = UserWarning)
                     continue
-
-                # dataStorage.append(x_data)
-                # dataStorage.append(y_data)
-                # dataStorage[idx, :] = x_data
-                # dataStorage[idx + 1, :] = y_data
-
 
                 # idx/2 is always an integer by definition but this must be told to
                 # python
@@ -377,8 +344,6 @@ class main_window(QtWidgets.QMainWindow):
                         " please check that data format matches the required format.",
                         category = UserWarning)
 
-
-        # print(np.shape(np.asarray(dataStorage)))
         # print(np.asarray(dataStorage))
         return np.asarray(dataStorage), graphLabels 
 
@@ -406,9 +371,6 @@ class main_window(QtWidgets.QMainWindow):
         # Read in data and do plotting
         self.idx = 0
 
-        # print(data)
-        # print(int(np.size(data)))
-        # print(len(data))
         if errbar_ == False:
             fileSz = 2
         else:
@@ -463,14 +425,6 @@ class main_window(QtWidgets.QMainWindow):
         # for top and bottom (left and right) axis. This is a go around I figured out.
         # It is, however, not very pretty but it works. The bottom and left axis get
         # twin axis that have the exact same parameters but with ticks pointing in.
-        # ax__right = ax_.twinx()
-        # ax__top = ax_.twiny()
-        # ax__right.tick_params(direction = "in")
-        # ax__top.tick_params(direction = "in")
-        # ax__right.set_yticklabels([])
-        # ax__top.set_xticklabels([])
-        # ax__top.set_xlim(ax_.get_xlim())
-        # ax__right.set_ylim(ax_.get_ylim())
 
         # Set several aesthetic parameters of the graph (should be always the same)
         ax_.set_xlabel(xylabel_[0], fontsize = self.fonts_)
@@ -490,20 +444,8 @@ class main_window(QtWidgets.QMainWindow):
         ax_.tick_params(which = "major", direction = "in", bottom = True, top = True, width = self.ax_ticks_width)
         ax_.tick_params(which = "major", direction = "in", left = True, right = True, width = self.ax_ticks_width)
 
-        # ax__top.tick_params(width = ax_ticks_width, length = tick_length)
-        # ax__top.tick_params(which = "minor", length=tick_length/4*3, width= ax_ticks_width, direction = "in")
-        # ax__top.tick_params(which = "major", width = ax_ticks_width)
-        # ax__right.tick_params(width = ax_ticks_width, length = tick_length)
-        # ax__right.tick_params(which = "major", width = ax_ticks_width)
-
         for axis in ['top','bottom','left','right']:
           ax_.spines[axis].set_linewidth(self.ax_ticks_width)
-
-        # Make room for x label
-        # self.fig.figure.subplots_adjust(left = 0.20, bottom = 0.20)
-
-        # Use a data cursor in the matplotlib graph
-        # datacursor(self.lines)
 
         # Set tick fontsizes
         for tick in ax_.xaxis.get_major_ticks():
@@ -551,18 +493,6 @@ class main_window(QtWidgets.QMainWindow):
         datacursor(self.lines, props_override=override, formatter='{label}'.format,
                 bbox = None, draggable = True)
 
-        # labs = str(tuple(self.IVlabels))
-
-        # datacursor(self.lines, formatter = labs.format, draggable = True, bbox = None)
-        # datacursor(self.lines, formatter = '{gid}'.format, draggable = True, bbox = None)
-        # mplcursors.cursor().connect(
-                # "add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
-        # cursor = mplcursors.cursor(hover=True)
-
-        # def on_plot_hover(event):
-
-        # self.fig.mpl_connect('motion_notify_event', on_plot_hover)           
-
         # Redraw the figure
         self.fig.draw()
 
@@ -587,17 +517,11 @@ class main_window(QtWidgets.QMainWindow):
             self.toolbar.addSeparator()
             self.toolbar.addAction(self.intDepIVAction)
 
-        elif whichTab_ == "EQE":
-            a = "only spacer"
-
         elif whichTab_ == "UVVis":
             self.toolbar.addAction(self.normalizeUVVisAction)
             self.toolbar.addSeparator()
             self.toolbar.addAction(self.UVVisFittingAction)
 
-        elif whichTab_ == "USR":
-            a = "only spacer"
-            
         elif whichTab_ == "TPVTPC":
             self.toolbar.addAction(self.TPVAction)
             self.toolbar.addSeparator()
@@ -812,12 +736,6 @@ class main_window(QtWidgets.QMainWindow):
                 if temp == None:
                     warnings.warn("Error the graph could not be traced back", category = UserWarning)
 
-                # pyqtRemoveInputHook()
-                # set_trace()
-
-                # dataToPlot = np.array([self.DIVdata[2 * temp][:], self.DIVdata[2 * temp + 1][:], 
-                    # self.DIVdata[2 * temp][:], self.slopeMobility[temp] * self.DIVdata[2 * temp][:] ** 2])
-
                 try:
                     # Only plot the fit in the regime where it was done so that
                     # the user immediately sees where it was done
@@ -839,9 +757,6 @@ class main_window(QtWidgets.QMainWindow):
                 except:
                     warnings.warn("There is no quadratic regime in this graph it was thus not fitted", category = UserWarning)
 
-
-            # except:
-                # warnings.warn("Error happened trying to extract nbs of legend when picking a graph.", category = UserWarning)
 
     def changeFilePath(self):
         # Dialog that allows the user to change the file path within the program
@@ -926,14 +841,14 @@ class main_window(QtWidgets.QMainWindow):
                     self.IVselected = np.array(f["IVselected"])
                     self.GroupColor = np.array(f["GroupColor"])
                     self.scan_nb = np.array(f["scan_nb"])
-                    Voc_dev = np.array(f["Voc_dev"])
-                    Jsc_dev = np.array(f["Jsc_dev"])
-                    FF_dev = np.array(f["FF_dev"])
-                    PCE_dev = np.array(f["PCE_dev"])
-                    Voc_dev_rev = np.array(f["Voc_dev_rev"])
-                    Jsc_dev_rev = np.array(f["Jsc_dev_rev"])
-                    FF_dev_rev = np.array(f["FF_dev_rev"])
-                    PCE_dev_rev = np.array(f["PCE_dev_rev"])
+                    # Voc_dev = np.array(f["Voc_dev"])
+                    # Jsc_dev = np.array(f["Jsc_dev"])
+                    # FF_dev = np.array(f["FF_dev"])
+                    # PCE_dev = np.array(f["PCE_dev"])
+                    # Voc_dev_rev = np.array(f["Voc_dev_rev"])
+                    # Jsc_dev_rev = np.array(f["Jsc_dev_rev"])
+                    # FF_dev_rev = np.array(f["FF_dev_rev"])
+                    # PCE_dev_rev = np.array(f["PCE_dev_rev"])
                     self.GroupNamesGlobal = np.array(f["GroupNamesGlobal"])
                     print("File successfully loaded")
                 except:
@@ -1156,28 +1071,8 @@ class main_window(QtWidgets.QMainWindow):
             return
 
         if self.IVcalled == True:
-            # xylabel = ["Voltage (V)", "Current (mA/cm$^2$)"]
-            # tickInterval = 0.4
 
-            # self.plot(self.IVdata, self.IVlabels, xylabel, tickInterval, 
-                    # IV_ = True, zeroLines_ = True)
             self.showHeroDevices("device")
-
-            # Adjust combo box according to number of scans
-
-            # all_handles = self._ax.get_legend().get_lines()
-            # i = 0
-            # print(np.size(all_handles))
-            # for logical in self.IVselected[:]:
-                # print(i)
-                # if logical == False:
-                    # # self.IVselected[]
-                    # legline = all_handles[i]
-                    # origline = self.lined[legline]
-                    # vis = not origline.get_visible()
-                    # origline.set_visible(vis)
-                    # legline.set_alpha(0.2)
-                # i += 1
 
         else:
             # Read in performance parameters from the PV Parameters file
@@ -1200,11 +1095,6 @@ class main_window(QtWidgets.QMainWindow):
                 except:
                     warnings.warn("Error while reading in PV parameters Dual. Please Check File for correctness.", category = UserWarning)
                     return
-
-            # self.line = {}
-            # # Clear plot (necessary to plot new stuff)
-            # self.fig.figure.clf()
-            # self.fig.draw()
 
             # Read in files and save the necessary numbers
             files = np.empty(0)
@@ -1292,8 +1182,8 @@ class main_window(QtWidgets.QMainWindow):
 
             # Do plotting and formatting of LIV
             names = ["LV", "LC"] # Name of columns in files to read in
-            xylabel = ["Voltage (V)", "Current (mA/cm$^2$)"]
-            tickInterval = 0.4
+            # xylabel = ["Voltage (V)", "Current (mA/cm$^2$)"]
+            # tickInterval = 0.4
             plotVars = ["LV", "LC"]
             self.IVdata, labels = self.readData(files, names, plotVars)
             # self.IVlabels = self.nbs
@@ -1309,8 +1199,6 @@ class main_window(QtWidgets.QMainWindow):
             # So every other element has to be adjusted in units
             self.IVdata[1::2] = self.IVdata[1::2] * 1000 / (4.5 / 100)
             self.showHeroDevices("device")
-            # self.plot(self.IVdata, self.IVlabels, xylabel, tickInterval, 
-                    # IV_ = True, zeroLines_ = True)
 
 
         # Only show a certain percentage of I>0 for IV 
@@ -1321,11 +1209,7 @@ class main_window(QtWidgets.QMainWindow):
 
         self.isWhat = "IV"
         self.IVcalled = True 
-        # print(self.IVselected)
 
-
-        # except:
-            # print("IV data can't be plotted. Most probably there is no valid IV data") 
 
     def assignGroup_dialog(self):
         # Dialog for the group assignment. Here in the IV dialog groups can be
@@ -2026,17 +1910,6 @@ class main_window(QtWidgets.QMainWindow):
         self._ax[1,0].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         self._ax[1,1].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
-        # n = 15
-        # if groupOrDevice == "groups":
-            # for i in range(np.size(self.GroupNames)):
-                # # pyqtRemoveInputHook()
-                # # set_trace()
-                # ind = np.argpartition(Voc_dev[i], -n)[-n:]
-                # Voc_dev[i] = Voc_dev[i][ind]
-                # Jsc_dev[i] = Jsc_dev[i][ind]
-                # FF_dev[i] = FF_dev[i][ind]
-                # PCE_dev[i] = PCE_dev[i][ind]
-
         # Voc in avg plot
         if avg == True:
             avgVoc = [np.average(subarray) for subarray in Voc_dev]
@@ -2205,14 +2078,11 @@ class main_window(QtWidgets.QMainWindow):
         # Plot hero pixel of every group
         if groupOrDevice == "group":
             for groupNb in range(np.size(self.GroupNames)):
-                # dataToPlot = np.append(dataToPlot, self.IVdata[2 * np.where(self.performance_data[:, 4] == np.max(self.performance_data[
-                    # np.where(np.in1d(self.nbs[:, 0], self.GroupNbs[groupNb][:]))][:, 4]))[0], :])
                 dataToPlot.append(self.IVdata[2 * np.where(self.performance_data[:, 4] == np.max(self.performance_data[
                     np.where(np.in1d(self.nbs[:, 0], self.GroupNbs[groupNb][:]))][:, 4]))[0][0]])
                 dataToPlot.append(self.IVdata[2 * np.where(self.performance_data[:, 4] == np.max(self.performance_data[
                     np.where(np.in1d(self.nbs[:, 0], self.GroupNbs[groupNb][:]))][:, 4]))[0][0] + 1])
-                # pyqtRemoveInputHook()
-                # set_trace()
+
                 print(self.GroupNames.astype('U13')[groupNb] + "'s hero pixel is " + str(self.nbs[np.where(self.performance_data[:, 4] == np.max(self.performance_data[
                     np.where(np.in1d(self.nbs[:, 0], self.GroupNbs[groupNb][:]))][:, 4]))[0][0], :]))
             labels = self.GroupNames.astype('U13')
@@ -2221,10 +2091,7 @@ class main_window(QtWidgets.QMainWindow):
         # Plot hero pixel of every device
         elif groupOrDevice == "device":
             for devNb in np.unique(self.nbs[:, 0]):
-                # print(devNb)
-                # print(np.where(self.performance_data[:, 4] == np.max(self.performance_data[
-                    # np.where(self.nbs[:, 0] == devNb)][:, 4]))[0][0])
-                # print(np.where(self.nbs[:, 0] == devNb))
+
                 dataToPlot.append(self.IVdata[2 * np.where(self.performance_data[:, 4] == np.max(self.performance_data[
                     np.where(self.nbs[:, 0] == devNb)][:, 4]))[0][0]])
                 dataToPlot.append(self.IVdata[2 * np.where(self.performance_data[:, 4] == np.max(self.performance_data[
@@ -2234,9 +2101,6 @@ class main_window(QtWidgets.QMainWindow):
                 # print(self.nbs[devNb, 0])
             self.statusBar().showMessage("Hero Pixels of all different Devices", 10000) 
 
-        # dataToPlot = np.reshape(dataToPlot, (int(np.size(dataToPlot) / np.size(self.IVdata[0])),
-            # np.size(self.IVdata[0])))
-        
         # Clear plot (necessary to plot new stuff)
         self.line = {}
         self.fig.figure.clf()
@@ -2434,12 +2298,6 @@ class main_window(QtWidgets.QMainWindow):
         self._ax.tick_params(which = "major", direction = "in", bottom = True, top = True, width = self.ax_ticks_width)
         self._ax.tick_params(which = "major", direction = "in", left = True, right = True, width = self.ax_ticks_width)
 
-        # self._ax_top.tick_params(width = ax_ticks_width, length = tick_length)
-        # self._ax_top.tick_params(which = "minor", length=tick_length/4*3, width= ax_ticks_width, direction = "in")
-        # self._ax_top.tick_params(which = "major", width = ax_ticks_width)
-        # self._ax_right.tick_params(width = ax_ticks_width, length = tick_length)
-        # self._ax_right.tick_params(which = "major", width = ax_ticks_width)
-
         for axis in ['top','bottom','left','right']:
           self._ax.spines[axis].set_linewidth(self.ax_ticks_width)
 
@@ -2501,13 +2359,6 @@ class main_window(QtWidgets.QMainWindow):
             self.EQElabels = np.append(self.EQElabels, "d" + str(dev_nb) + "p" + 
                     str(pixel_nb) + "s" + str(scan_nb))
 
-        # files = [f for f in glob.glob(filepath + "*.txt")]
-        # skipr = (0, 0)                      # how many rows to skip at header and footer
-        # names = ["wavelength", "device_current", "incident_light_int", "EQE"] # Name of columns in files to read in
-        # plotVars = ["wavelength", "EQE"]
-        # self.readData(files, skipr, names, plotVars)
-
-        # try:
         self.isWhat = "EQE"
         # filepath = "./EQE/"
         # files = [f for f in glob.glob(filepath + "*.txt")]
@@ -2527,11 +2378,6 @@ class main_window(QtWidgets.QMainWindow):
         self._ax = self.fig.figure.subplots()
         self.plot(dataToPlot, self.EQElabels, xylabel, tickInterval, ylim_ = ylim, ax_ = self._ax)
         self.updateToolbar("EQE")
-
-            # Clear the toolbar, so that other actions can be put there
-            # self.toolbar.clear()
-        # except:
-        # print("EQE data can't be plotted. Most probably there is no valid EQE data") 
 
     # -----------------------------------------------------
     # -- Section for Functions Accessible from UVVIS Tab --
@@ -2864,47 +2710,10 @@ class main_window(QtWidgets.QMainWindow):
         self.fig.draw()
         # self._ax = self.fig.figure.subplots()
 
-        # # Do plotting and formatting
-        # xlim = (-1, 15)
-        # names = ["Name", "X", "Y", "Yerr"] # Name of columns in files to read in
-        # xylabel = ["Dipolar Moment (D)", "Voc (V)"]
-        # tickInterval = 2 
-        # plotVars = ["X", "Y", "Yerr"]
-        # dataToPlot, labels = self.readData(files, names, plotVars)
-        # self._ax = self.fig.figure.subplots()
-        # self.plot(dataToPlot, labels, xylabel, tickInterval, ax_ = self._ax, linestyle_ = "",
-                # marker_ = "s", errbar_ = True, xlim_ = xlim)
-
-        # os.chdir(filepath + "/../WF_Vs_DMom")
-        # files = [f for f in glob.glob("*.txt")]
-
-        # ax2 = self._ax.twinx()
-        # dataToPlot, labels = self.readData(files, names, plotVars)
-        # xylabel = ["Dipolar Moment (D)", "WF (eV)"]
-        # self.plot(dataToPlot, labels, xylabel, tickInterval, ax_ = ax2, linestyle_ = "",
-                # marker_ = "s", errbar_ = True, xlim_ = xlim, color_ = "r", gridOn_ = False)
-
-        # Do plotting and formatting of LIV
-        # names = ["LV", "LC"] # Name of columns in files to read in
-        # xylabel = ["Voltage (V)", "Current (mA/cm$^2$)"]
-        # tickInterval = 0.2
-        # plotVars = ["LV", "LC"]
-        # IVdata, labels = self.readData(files, names, plotVars)
-        # IVdata[1::2] = IVdata[1::2] * 1000 / (4.5 / 100)
-
-        # self.plot(IVdata, labels, xylabel, tickInterval, zeroLines_ = True)
-
         os.chdir(current_path)      # go back to current working directory
-        # except:
-            # warnings.warn("Data can't be plotted. Please check if a valid folder"
-                # +" was chosen and that the files are valid .csv files.", category = UserWarning)
 
     def load_TPVTPC(self):
         # Load in the TPV/TPC data adjust it and do the first plotting
-
-        # try:
-        # For testing purposes select a constant file path
-        # self.globalPath = "../../TPV_TPC/190523_MolA/"
 
         self.isWhat = "TPVTPC"
         # This window shall enable the user to select a folder
@@ -2936,17 +2745,12 @@ class main_window(QtWidgets.QMainWindow):
                 files_TPV = np.append(files_TPV, files[fileNb])
                 type_TPV = np.append(type_TPV, extracted_codes[1])
                 nbs_TPV = np.append(nbs_TPV, [[extracted_nbs[0], extracted_nbs[1]]], axis = 0)
-                # labels_TPV = np.append(labels_TPV, str(nbs_TPV[fileNb])) 
-                # nbs_temp = np.append(nbs_temp, [[dev_nb, pixel_nb, self.scan_nb]], axis = 0)
+
             elif extracted_codes[0] == "TPC":
                 files_TPC = np.append(files_TPC, files[fileNb])
                 type_TPC = np.append(type_TPC, extracted_codes[1])
                 nbs_TPC = np.append(nbs_TPC, [[extracted_nbs[0], extracted_nbs[1]]], axis = 0)
-                # labels_TPC = np.append(labels_TPC, str(nbs_TPC[fileNb])) 
 
-
-        print(files_TPC)
-        print(files_TPV)
         # Sort everything to obtain sorted data
         sortingIdxTPV = np.lexsort((nbs_TPV[:, 1], nbs_TPV[:, 0], type_TPV))
         sortingIdxTPC = np.lexsort((nbs_TPC[:, 1], nbs_TPC[:, 0], type_TPC))
@@ -3062,12 +2866,6 @@ class main_window(QtWidgets.QMainWindow):
             DIVlabels_temp = np.append(DIVlabels_temp, "d" + str(dev_nb) + "p" + 
                     str(pixel_nbDIV) + "s" + str(scan_nbDIV))
 
-        # dev_nb += 1
-
-        # except:
-            # print("As device no number was entered")
-
-
         # glob doesn't read in data in an order. To fix this the arrays have to 
         # be sorted
         sortingIdxDIV = np.lexsort((nbsDIV_temp[:,1], nbsDIV_temp[:,0]))
@@ -3084,18 +2882,9 @@ class main_window(QtWidgets.QMainWindow):
 
         filesDIV = filesDIV[sortingIdxDIV]
         self.DIVlabels = DIVlabels_temp[sortingIdxDIV]
-        # if str(self.nbsDIV[0,0]).isdigit() == False:
-            # self.GroupNames = np.unique(self.nbsDIV[:,0])  
-            # self.GroupNbs = np.unique(self.nbsDIV[:,0])  
 
         if np.size(self.IVselected) == 0:
             self.IVselected = np.repeat(True, np.size(filesDIV))
-
-        # files = [f for f in glob.glob(filepath + "*.txt")]
-        # skipr = (0, 0)                      # how many rows to skip at header and footer
-        # names = ["wavelength", "device_current", "incident_light_int", "EQE"] # Name of columns in files to read in
-        # plotVars = ["wavelength", "EQE"]
-        # self.readData(files, skipr, names, plotVars)
 
         self.line = {}
         self.fig.figure.clf()
@@ -3116,17 +2905,9 @@ class main_window(QtWidgets.QMainWindow):
                 IV_ = True, zeroLines_ = True)
         self.updateToolbar("mobility")
 
-            # Clear the toolbar, so that other actions can be put there
-            # self.toolbar.clear()
-        # except:
-
     def extractMobility(self):
         # Function to extract mobility from selected IV curves
-        # print(self.DIVdata[self.IVselected])
 
-        # print(self.IVselected)
-        # print(self.DIVdata[self.IVselected])
-        # temp_IVselected = np.copy(self.IVselected)
         tot_selected = np.empty(np.size(self.IVselected) * 2, dtype = bool)
         tot_selected[0::2] = self.IVselected
         tot_selected[1::2] = self.IVselected
@@ -3159,9 +2940,6 @@ class main_window(QtWidgets.QMainWindow):
         for i in range(np.size(mobility_group)):
             print("Group " + str(self.GroupNames[i]) + ": " + str(np.round(mobility_group[i], 8)) + " cm2/Vs")
 
-        # pyqtRemoveInputHook()
-        # set_trace()
-
 
     def fitMobility(self, dat):
         # Function that does the fitting for the DIV curves to extract the mobility 
@@ -3181,25 +2959,10 @@ class main_window(QtWidgets.QMainWindow):
             # slope, intercept, r_value, p_value, std_err = linregress(x, y)
             # y times 10 to convert mA/cm^2 in A/m^2
             popt, pcov = curve_fit(lambda t,a,b,c: a * (t - b) ** 2 + c, xdata, ydata, maxfev = 10000)
-            # popt, pcov = curve_fit(lambda t,a: a * t ** 2, xdata, ydata, maxfev = 10000)
-            # print(np.gradient(np.log(ydata), xdata))
+
             print(np.min(xdata))
             print(np.max(xdata))
-            # try:
-                # xdata_ = xdata[np.where(xdata > popt[1])[0][0]:-1]
-                # ydata_ = ydata[np.where(xdata > popt[1])[0][0]:-1]
-            # except:
-                # xdata_ = xdata
-                # ydata_ = ydata
 
-
-            # Now cut the data again to only fit the values greater than where the parabola minimum is
-            # popt, pcov = curve_fit(lambda t,a,b: a * (t - b) ** 2, xdata_, ydata_, maxfev = 10000)
-            # popt, pcov = curve_fit(lambda t,a,b: np.power(10, (a + b * t)),  xdata,  ydata, p0 = [0.01, 0.01], maxfev = 10000)
-            # print(popt, pcov)
-            
-            # return slope of quadratic function
-            # return popt[0], popt[1]
             return popt[0], popt[1], popt[2], np.min(xdata), np.max(xdata)
         except:
             warnings.warn("Could not fit the curve probably it is nowhere quadratic", category = UserWarning)
@@ -3233,8 +2996,6 @@ class main_window(QtWidgets.QMainWindow):
         self.updateToolbar("ELQE")
 
 
-
-
     def closeEvent(self, event):
         # If no group names have been defined the dialog can be killed by
         # pressing the x on top
@@ -3255,138 +3016,6 @@ class main_window(QtWidgets.QMainWindow):
             self.saveFile()
             event.accept()
         
-
-# This class has to be defined to obtain a labeled slider used in the group
-# assigned dialog. The predefined slider of pyqt has no labels. This solution
-# was copied from stackoverflow.com
-class LabeledSlider(QtWidgets.QWidget):
-    def __init__(self, minimum, maximum, interval=1, orientation=QtCore.Qt.Horizontal,
-            labels=None, parent=None):
-        # Initialize the labeled slider 
-
-        super(LabeledSlider, self).__init__(parent=parent)
-
-        levels=range(minimum, maximum+interval, interval)
-        if labels is not None:
-            if not isinstance(labels, (tuple, list)):
-                raise Exception("<labels> is a list or tuple.")
-            if len(labels) != len(levels):
-                raise Exception("Size of <labels> doesn't match levels.")
-            self.levels=list(zip(levels,labels))
-        else:
-            self.levels=list(zip(levels,map(str,levels)))
-
-        if orientation==QtCore.Qt.Horizontal:
-            self.layout=QtWidgets.QVBoxLayout(self)
-        elif orientation==QtCore.Qt.Vertical:
-            self.layout=QtWidgets.QHBoxLayout(self)
-        else:
-            raise Exception("<orientation> wrong.")
-
-        # gives some space to print labels
-        self.left_margin=10
-        self.top_margin=10
-        self.right_margin=10
-        self.bottom_margin=10
-
-        self.layout.setContentsMargins(self.left_margin,self.top_margin,
-                self.right_margin,self.bottom_margin)
-
-        self.sl=QtWidgets.QSlider(orientation, self)
-        self.sl.setMinimum(minimum)
-        self.sl.setMaximum(maximum)
-        self.sl.setValue(minimum)
-        if orientation==QtCore.Qt.Horizontal:
-            self.sl.setTickPosition(QtWidgets.QSlider.TicksBelow)
-            self.sl.setMinimumWidth(300) # just to make it easier to read
-        else:
-            self.sl.setTickPosition(QtWidgets.QSlider.TicksLeft)
-            self.sl.setMinimumHeight(300) # just to make it easier to read
-        self.sl.setTickInterval(interval)
-        self.sl.setSingleStep(1)
-
-        self.layout.addWidget(self.sl)
-
-    def setValue(self, nb):
-        # From the python code set a new value
-
-        self.sl.setValue(nb)
-
-    def valueChanged(self, function):
-        # Overload the value changed function of the predefined slider
-
-        self.sl.valueChanged.connect(function)
-
-    def value(self):
-        # Overload the value function of the predefined slider
-
-        return self.sl.value()
-
-    def paintEvent(self, e):
-        # Paint the numbers below the slider
-
-        super(LabeledSlider,self).paintEvent(e)
-
-        style=self.sl.style()
-        painter=QtGui.QPainter(self)
-        st_slider=QtWidgets.QStyleOptionSlider()
-        st_slider.initFrom(self.sl)
-        st_slider.orientation=self.sl.orientation()
-
-        length=style.pixelMetric(QtWidgets.QStyle.PM_SliderLength, st_slider, self.sl)
-        available=style.pixelMetric(QtWidgets.QStyle.PM_SliderSpaceAvailable, st_slider, self.sl)
-
-        for v, v_str in self.levels:
-
-            # get the size of the label
-            rect=painter.drawText(QtCore.QRect(), QtCore.Qt.TextDontPrint, v_str)
-
-            if self.sl.orientation()==QtCore.Qt.Horizontal:
-                # I assume the offset is half the length of slider, therefore
-                # + length//2
-                x_loc=QtWidgets.QStyle.sliderPositionFromValue(self.sl.minimum(),
-                        self.sl.maximum(), v, available)+length//2
-
-                # left bound of the text = center - half of text width + L_margin
-                left=x_loc-rect.width()//2+self.left_margin
-                bottom=self.rect().bottom()
-
-                # enlarge margins if clipping
-                if v==self.sl.minimum():
-                    if left<=0:
-                        self.left_margin=rect.width()//2-x_loc
-                    if self.bottom_margin<=rect.height():
-                        self.bottom_margin=rect.height()
-
-                    self.layout.setContentsMargins(self.left_margin,
-                            self.top_margin, self.right_margin,
-                            self.bottom_margin)
-
-                if v==self.sl.maximum() and rect.width()//2>=self.right_margin:
-                    self.right_margin=rect.width()//2
-                    self.layout.setContentsMargins(self.left_margin,
-                            self.top_margin, self.right_margin,
-                            self.bottom_margin)
-
-            else:
-                y_loc=QtWidgets.QStyle.sliderPositionFromValue(self.sl.minimum(),
-                        self.sl.maximum(), v, available, upsideDown=True)
-
-                bottom=y_loc+length//2+rect.height()//2+self.top_margin-3
-                # there is a 3 px offset that I can't attribute to any metric
-
-                left=self.left_margin-rect.width()
-                if left<=0:
-                    self.left_margin=rect.width()+2
-                    self.layout.setContentsMargins(self.left_margin,
-                            self.top_margin, self.right_margin,
-                            self.bottom_margin)
-
-            pos=QtCore.QPoint(left, bottom)
-            painter.drawText(pos, v_str)
-
-        return
-
 #-------------------------------------------------------------------------------
 #---------------------------------- MAIN ---------------------------------------
 #-------------------------------------------------------------------------------
