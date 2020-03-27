@@ -7,7 +7,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtRemoveInputHook
 from pdb import set_trace
-from LabledSlider import LabledSlider
+from LabeledSlider import LabeledSlider
 
 import h5py
 
@@ -490,8 +490,8 @@ class main_window(QtWidgets.QMainWindow):
             kwargs['label'] = str(kwargs['label']) + "\n " + labelVoc + "\n " + labelJsc + "\n " + labelFF + "\n " + labelPCE 
             return kwargs
 
-        datacursor(self.lines, props_override=override, formatter='{label}'.format,
-                bbox = None, draggable = True)
+        # datacursor(self.lines, props_override=override, formatter='{label}'.format,
+                # bbox = None, draggable = True)
 
         # Redraw the figure
         self.fig.draw()
