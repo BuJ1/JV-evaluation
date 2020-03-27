@@ -14,6 +14,6 @@ validity of the curves you can then proceed by comparing the efficiency data. Ke
 program is tailored to a certain data file structure. Nevertheless, it shouldn't be a big deal to
 change it so that it fits your needs.
 
-## Requirments
+## Requirements
 
 Python 3.?
