@@ -5,7 +5,7 @@ import sip
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtRemoveInputHook
+# from PyQt5.QtCore import pyqtRemoveInputHook
 from pdb import set_trace
 from LabeledSlider import LabeledSlider
 
@@ -24,7 +24,7 @@ import figureoptions_debugging as local_figureoptions
 import matplotlib.backends.backend_qt5
 matplotlib.backends.backend_qt5.figureoptions = local_figureoptions
 import functools
-# from mpldatacursor import datacursor
+from mpldatacursor import datacursor
 from matplotlib.backend_bases import key_press_handler
 import warnings
 import matplotlib.dates as mdates
@@ -490,8 +490,8 @@ class main_window(QtWidgets.QMainWindow):
             kwargs['label'] = str(kwargs['label']) + "\n " + labelVoc + "\n " + labelJsc + "\n " + labelFF + "\n " + labelPCE 
             return kwargs
 
-        # datacursor(self.lines, props_override=override, formatter='{label}'.format,
-                # bbox = None, draggable = True)
+        datacursor(self.lines, props_override=override, formatter='{label}'.format,
+                bbox = None, draggable = True)
 
         # Redraw the figure
         self.fig.draw()
@@ -924,7 +924,16 @@ class main_window(QtWidgets.QMainWindow):
                         PCE_dev_rev_all = np.append(PCE_dev_rev_all, f["PCE_dev_rev"])
                         print("File of folder " + str(self.paths[i]) + " successfully loaded")
                     except:
-                        print("Couldn't load file of" + str(self.paths[i]))
+                        try:
+                            GroupNamesGlobalAll = np.append(GroupNamesGlobalAll, np.array(f["GroupNamesGlobal"]))
+                            GroupColorAll = np.append(GroupColorAll, np.array(f["GroupColor"]))
+                            Voc_dev_all = np.append(Voc_dev_all, np.array(f["Voc_dev"]))
+                            Jsc_dev_all = np.append(Jsc_dev_all, f["Jsc_dev"])
+                            FF_dev_all = np.append(FF_dev_all, f["FF_dev"])
+                            PCE_dev_all = np.append(PCE_dev_all, f["PCE_dev"])
+                            print("File of folder " + str(self.paths[i]) + " successfully loaded. Has no reverse scan.")
+                        except:
+                            print("Couldn't load file of" + str(self.paths[i]))
             
                     if os.path.isfile(file_name + "/IntDepIV") == True:
                         self.intDepIVAction.setEnabled(True)
@@ -962,16 +971,20 @@ class main_window(QtWidgets.QMainWindow):
                 self.FF_all.append(np.concatenate(FF_dev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
                 self.PCE_all.append(np.concatenate(PCE_dev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
 
-                self.Voc_rev_all.append(np.concatenate(Voc_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
-                self.Jsc_rev_all.append(np.concatenate(Jsc_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
-                self.FF_rev_all.append(np.concatenate(FF_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
-                self.PCE_rev_all.append(np.concatenate(PCE_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
+                if np.size(Voc_dev_rev_all) != 0:
+                    self.Voc_rev_all.append(np.concatenate(Voc_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
+                    self.Jsc_rev_all.append(np.concatenate(Jsc_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
+                    self.FF_rev_all.append(np.concatenate(FF_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
+                    self.PCE_rev_all.append(np.concatenate(PCE_dev_rev_all[np.where(GroupNamesGlobalAll.astype('U13') == unGrName)], axis = None))
 
             self._nbGroups = np.size(self.GroupNames)
             # pyqtRemoveInputHook()
             # set_trace()
 
-            self.isDual = True
+            if np.size(Voc_dev_rev_all) != 0:
+                self.isDual = True
+            else:
+                self.isDual = False
             self.groupsAssigned = True
             self.assignGroupAction.setEnabled(True)
             self.showGroupAction.setEnabled(False)
@@ -2169,14 +2182,11 @@ class main_window(QtWidgets.QMainWindow):
 
         # Now sort the elements to enable plotting according to their group and 
         # according to the used intensity mask
-        Voc_dev = []
-
         self.line = {}
         self.fig.figure.clf()
         self.fig.draw()
 
         self._ax = self.fig.figure.subplots()
-        tickInterval_ = 10
 
         for k in range(np.size(self.GroupNames)):
             store_plot = []
@@ -2246,8 +2256,8 @@ class main_window(QtWidgets.QMainWindow):
                 # set_trace()
 
                 try:
-                    self._ax.errorbar(x, store_plot, yerr = store_plot_err,
-                            fmt = "s", capsize = 10, label = self.GroupNames.astype('U13')[k], c = self.GroupColor.astype('U7')[k])
+                    self._ax.errorbar(x, store_plot, yerr = store_plot_err, fmt = "s",
+                        capsize = 10, label = self.GroupNames.astype('U13')[k], c = self.GroupColor.astype('U7')[k])
                 except:
                     print(i)
                     warnings.warn("Not possible to plot this intensity dependent IV", category = UserWarning)
@@ -2294,7 +2304,8 @@ class main_window(QtWidgets.QMainWindow):
         self._ax.xaxis.set_major_formatter(plticker.ScalarFormatter())
         
         self._ax.tick_params(width = self.ax_ticks_width, length = self.tick_length)
-        self._ax.tick_params(which = "minor", direction = "in", bottom = True, top = True, length = self.tick_length/4*3, width= self.ax_ticks_width)
+        self._ax.tick_params(which = "minor", direction = "in", bottom =
+            True, top = True, length = self.tick_length/4*3, width= self.ax_ticks_width)
         self._ax.tick_params(which = "major", direction = "in", bottom = True, top = True, width = self.ax_ticks_width)
         self._ax.tick_params(which = "major", direction = "in", left = True, right = True, width = self.ax_ticks_width)
 
@@ -2305,7 +2316,7 @@ class main_window(QtWidgets.QMainWindow):
         self.fig.figure.subplots_adjust(left = 0.20, bottom = 0.20)
 
         # Use a data cursor in the matplotlib graph
-        # datacursor(self.lines)
+        datacursor(self.lines)
 
         # Set tick fontsizes
         for tick in self._ax.xaxis.get_major_ticks():
@@ -2347,7 +2358,6 @@ class main_window(QtWidgets.QMainWindow):
 
         for nb_files in range(len(files)):
             regex = re.compile(r'\d+')
-            extracted_nbs = [int(x) for x in regex.findall(files[nb_files])]
 
             pixel_nb = [int(x) for x in regex.findall(files[nb_files].rsplit('/', 1)[-1].rsplit('_', 5)[3])][0]
             # pixel_nb = extracted_nbs[2] 
@@ -2368,7 +2378,6 @@ class main_window(QtWidgets.QMainWindow):
         self.fig.draw()
 
         # Do plotting and formatting
-        xlim = (350, 800)
         ylim = (0, 100)
         names = ["wavelength", "device_current", "incident_light_int", "EQE"] # Name of columns in files to read in
         xylabel = ["Wavelength (nm)", "EQE (%)"]
@@ -2445,18 +2454,19 @@ class main_window(QtWidgets.QMainWindow):
                 # Do normalization of the data
                 # Only do the normalization in the chosen limits
                 # (Rather lengthy expressions but this was the best, fastest I could come up with)
-                xDataLims = np.reshape(dataToPlot[0::2, :][np.logical_and(dataToPlot[0::2, :] >= xlim[0], dataToPlot[0::2, :] <= xlim[1])],
-                        (int(dataToPlot.shape[0] / 2), int(np.size(dataToPlot[0::2, :][np.logical_and(dataToPlot[0::2, :] >= xlim[0], dataToPlot[0::2, :] <= xlim[1])])
-                            / dataToPlot.shape[0] * 2)))
-                yDataLims = np.reshape(dataToPlot[1::2, :][np.logical_and(dataToPlot[0::2, :] >= xlim[0], dataToPlot[0::2, :] <= xlim[1])],
-                        (int(dataToPlot.shape[0] / 2), int(np.size(dataToPlot[0::2, :][np.logical_and(dataToPlot[0::2, :] >= xlim[0], dataToPlot[0::2, :] <= xlim[1])])
-                            / dataToPlot.shape[0] * 2)))
-
+                xDataLims = np.reshape(dataToPlot[0::2, :][np.logical_and(dataToPlot[0::2, :] >=
+                    xlim[0], dataToPlot[0::2, :] <= xlim[1])], (int(dataToPlot.shape[0] / 2),
+                    int(np.size(dataToPlot[0::2, :][np.logical_and(dataToPlot[0::2, :] >=
+                    xlim[0], dataToPlot[0::2, :] <= xlim[1])]) / dataToPlot.shape[0] * 2)))
+                yDataLims = np.reshape(dataToPlot[1::2,:][np.logical_and(dataToPlot[0::2, :] >=
+                    xlim[0], dataToPlot[0::2, :] <= xlim[1])], (int(dataToPlot.shape[0] / 2),
+                    int(np.size(dataToPlot[0::2, :][np.logical_and(dataToPlot[0::2, :] >=
+                    xlim[0], dataToPlot[0::2, :] <= xlim[1])]) / dataToPlot.shape[0] * 2)))
 
                 # Normalize data (to difference between minimum and maximum) of each subarray
                 for nb in range(yDataLims.shape[0]):
-                    yDataLims[nb, :] = (yDataLims[nb, :] - np.min(yDataLims[nb, :])) / np.max(yDataLims[nb, :] - np.min(yDataLims[nb, :]))
-                
+                    yDataLims[nb, :] = (yDataLims[nb, :] - np.min(yDataLims[nb, :])) / np.max(yDataLims[nb, :] -
+                        np.min(yDataLims[nb, :]))
                 # Save in the right format to give it to the plot function
                 dataNorm = np.empty((int(dataToPlot.shape[0]), xDataLims.shape[1]))
                 dataNorm[0::2, :] = xDataLims 
@@ -2495,7 +2505,6 @@ class main_window(QtWidgets.QMainWindow):
         horizontalLayout1.addWidget(Title)
 
         horizontalLayout2 = QtWidgets.QHBoxLayout()
-        fit1 = QtWidgets.QLabel("Left Fit:")
 
         horizontalLayout3 = QtWidgets.QHBoxLayout()
         self.fit1LowerLim = QtWidgets.QLineEdit()
@@ -2512,7 +2521,6 @@ class main_window(QtWidgets.QMainWindow):
         horizontalLayout3.addWidget(nmLabel2)
 
         horizontalLayout4 = QtWidgets.QHBoxLayout()
-        fit1 = QtWidgets.QLabel("Right Fit:")
 
         horizontalLayout5 = QtWidgets.QHBoxLayout()
         self.fit2LowerLim = QtWidgets.QLineEdit()
@@ -2575,14 +2583,23 @@ class main_window(QtWidgets.QMainWindow):
                 wavelength = self._ax.lines[linenb].get_xydata()[:, 0]
                 absorption = self._ax.lines[linenb].get_xydata()[:, 1]
                 band_gap_wl = self.calcEg(wavelength, absorption, fit1_boundaries, fit2_boundaries)
-                print("Estimated bandgap: " + str(np.round(band_gap_wl, 1)) + "nm = " + str(np.round(hPlanck / eElectron * cLight / (band_gap_wl * 10**(-9)), 2)) + "eV")
-
+                print("Estimated bandgap: " + str(np.round(band_gap_wl, 1)) + "nm = " +
+                    str(np.round(hPlanck / eElectron * cLight / (band_gap_wl * 10**(-9)), 2)) +
+                    "eV")
                 # Left fit
-                fit1 = self._ax.plot(wavelength[(wavelength > fit1_boundaries[0] - fit_plot_sub) & (wavelength < fit1_boundaries[1] + fit_plot_sub)], 10**(wavelength[(wavelength > fit1_boundaries[0] - fit_plot_sub) & (wavelength < fit1_boundaries[1] + fit_plot_sub)] * self.fitlin(wavelength, absorption, fit1_boundaries)[0] + self.fitlin(wavelength, absorption, fit1_boundaries)[1]), label = "fit1", linewidth = self.linew)
-
+                fit1 = self._ax.plot(wavelength[(wavelength > fit1_boundaries[0] - fit_plot_sub)
+                    & (wavelength < fit1_boundaries[1] + fit_plot_sub)],
+                    10**(wavelength[(wavelength > fit1_boundaries[0] - fit_plot_sub) &
+                    (wavelength < fit1_boundaries[1] + fit_plot_sub)] * self.fitlin(wavelength,
+                    absorption, fit1_boundaries)[0] + self.fitlin(wavelength, absorption,
+                    fit1_boundaries)[1]), label = "fit1", linewidth = self.linew)
                 # Right fit
-                fit2 = self._ax.plot(wavelength[(wavelength > fit2_boundaries[0] - fit_plot_sub) & (wavelength < fit2_boundaries[1] + fit_plot_sub)], 10**(wavelength[(wavelength > fit2_boundaries[0] - fit_plot_sub) & (wavelength < fit2_boundaries[1] + fit_plot_sub)] * self.fitlin(wavelength, absorption, fit2_boundaries)[0] + self.fitlin(wavelength, absorption, fit2_boundaries)[1]), label = "fit2", linewidth = self.linew)
-
+                fit2 = self._ax.plot(wavelength[(wavelength > fit2_boundaries[0] - fit_plot_sub)
+                    & (wavelength < fit2_boundaries[1] + fit_plot_sub)],
+                    10**(wavelength[(wavelength > fit2_boundaries[0] - fit_plot_sub) &
+                    (wavelength < fit2_boundaries[1] + fit_plot_sub)] * self.fitlin(wavelength,
+                    absorption, fit2_boundaries)[0] + self.fitlin(wavelength, absorption,
+                    fit2_boundaries)[1]), label = "fit2", linewidth = self.linew)
         self.fig.draw()
 
     def fitlin(self, l, dat, ran):
@@ -2618,9 +2635,7 @@ class main_window(QtWidgets.QMainWindow):
 
         xlim = [-0.5, 5]
         tickInterval = 0.5 
-        names = ["time", "A", "B", "AvA"] # Name of columns in files to read in
         xylabel = ["Time ($\mu$s)", "Normalized Voltage (a.u.)"]
-        plotVars = ["time", "AvA"]
         self._ax = self.fig.figure.subplots()
 
         # Turn around the array (for standard architecture)
@@ -2637,9 +2652,7 @@ class main_window(QtWidgets.QMainWindow):
 
         xlim = [-0.5, 5]
         tickInterval = 0.5 
-        names = ["time", "A", "B", "AvA"] # Name of columns in files to read in
         xylabel = ["Time ($\mu$s)", "Normalized Current (a.u.)"]
-        plotVars = ["time", "AvA"]
         self._ax = self.fig.figure.subplots()
 
         # Turn around the array (for standard architecture)
@@ -2702,7 +2715,6 @@ class main_window(QtWidgets.QMainWindow):
         # to work around this one can change in the directory using os.chdir
         current_path = os.getcwd()  # get current working directory
         os.chdir(filepath)
-        files = [f for f in glob.glob("*.txt")]
 
         self.line = {}
         # Clear plot (necessary to plot new stuff)
@@ -2729,12 +2741,10 @@ class main_window(QtWidgets.QMainWindow):
         files_TPV = np.empty(0, dtype = object)
         type_TPV = np.empty(0, dtype = object)
         nbs_TPV = np.empty([0, 2])
-        labels_TPV = np.empty(0, dtype = object)
 
         files_TPC = np.empty(0, dtype = object)
         type_TPC = np.empty(0, dtype = object)
         nbs_TPC = np.empty([0, 2])
-        labels_TPC = np.empty(0, dtype = object)
 
         for fileNb in range(np.size(files)):
             regex = re.compile(r'\d+')
@@ -2911,7 +2921,6 @@ class main_window(QtWidgets.QMainWindow):
         tot_selected = np.empty(np.size(self.IVselected) * 2, dtype = bool)
         tot_selected[0::2] = self.IVselected
         tot_selected[1::2] = self.IVselected
-        nbs_selected = self.nbsDIV[self.IVselected]
         # self.DIVdata[tot_selected]
         self.slopeMobility = np.zeros(np.shape(self.nbsDIV)[0])
         self.x_new = np.zeros(np.shape(self.nbsDIV)[0])
@@ -2972,9 +2981,6 @@ class main_window(QtWidgets.QMainWindow):
 
         self.isWhat = "ELQE"
         filepath = self.globalPath + "/ELQE/"
-        files = np.empty(0)
-        scan_nb = 1
-        dev_nb = 1
         filesELQE = np.array([f for f in glob.glob(filepath + "*_LIVdata.txt")])
 
 
