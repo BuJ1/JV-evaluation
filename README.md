@@ -2,8 +2,7 @@
 
 An easy to use GUI to evaluate and sort out current voltage curves used in photovoltaic research,
 go through external quantum efficiency files and fit UV-vis spectroscopy files. This project
-was realised during a masters thesis to facilitate data evaluation. It is no longer maintained, however,
-feel free to use the code or even contribute to it.
+was realised during a master's thesis to facilitate data evaluation as a hobby project. It is not maintained or updated. However, please feel free to use the code.
 
 ## General Idea
 
@@ -13,7 +12,3 @@ cells you would, however, first define different subsets or groups of solar cell
 validity of the curves you can then proceed by comparing the efficiency data. Keep in mind that this
 program is tailored to a certain data file structure. Nevertheless, it shouldn't be a big deal to
 change it so that it fits your needs.
-
-## Requirements
-
-Python 3.?
